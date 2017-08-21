@@ -1,0 +1,70 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+/*login page*/
+#loginForm{
+  margin-top: 100px;
+  text-align: center;
+}
+
+
+/*chatroom*/
+.chat-wrapper{
+  margin-top:100px;
+}
+
+#message-box, #user-list-wrapper{
+  height:500px;
+  overflow-y: auto;
+}
+
+/*log out button area*/
+.log-out{
+  text-align: right;
+}
+
+/*ul li style*/
+#messages li, #user-list li{
+  list-style-type: none;
+  padding:8px;
+}
+
+.new-message{
+
+}
+
+.user-join-left{
+  text-align: center;
+  color: grey;
+}
+
+.username{
+  font-weight: 700;
+  font-size: 150%;
+  padding-right:15px;
+}
+
+.messageBody{
+  font-size: 150%;
+}
+
+/*customize scrollbar*/
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background-color: rgba(25, 147, 147, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: rgba(25, 147, 147, 0.2);
+}

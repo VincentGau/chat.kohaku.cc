@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel='stylesheet' href='/stylesheets/style.css'/>
+</head>
+<body>
+
+
+<% if (success.length) { %>
+<div class="alert alert-success">
+    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+    <%= success %>
+</div>
+<% } %>
+<% if (error.length) { %>
+<div class="alert alert-danger">
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <%= error %>
+</div>
+<% } %>
+<% if (info.length) { %>
+<div class="alert alert-danger">
+    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+    <%= info %>
+</div>
+<% } %>
+
+
+<form class="form-horizontal col-md-2 col-md-offset-5" id="loginForm" action="/login" method="post">
+    <h3>Chat</h3>
+    <div class="form-group">
+        <input type="text" class="form-control" id="username" name="username" placeholder="Username">
+    </div>
+
+    <div class="form-group">
+        <input type="password" class="form-control" id="passwd" name="passwd" placeholder="Password">
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="form-control btn btn-primary">登录</button>
+    </div>
+</form>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+<script>
+
+    $(function () {
+        // Auto-focus the username input when loaded.
+        $("#username").focus();
+
+        $(window).keydown(function (event) {
+            // focus the username input when ctrl or alt key is typed
+            if (event.ctrlKey || event.altKey) {
+                $("#username").focus();
+            }
+        });
+    });
+
+</script>
+</body>
+
+</html>

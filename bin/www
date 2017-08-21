@@ -1,0 +1,214 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('chatapp:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+
+// Chatroom
+var numUsers = 0;
+var onlineUsers = new Set();
+var userlist = [];
+Set.prototype.toString = function(){
+    s = "";
+    this.forEach(function(item){
+        s += item + '&#&';
+        // s += '&#&'
+    });
+
+    // 去掉最后一个分隔符 &#&
+    return s.substring(0, s.length - 3);
+};
+
+var io = require('socket.io')(server);
+io.on('connection', function (socket) {
+
+    socket.on('disconnect', function (reason) {
+        console.log('kohaku------------------------', reason);
+
+        if(reason === 'client namespace disconnect'){
+            // kicked
+            // numUsers -= 1;  //因为没有用户减少
+            console.log('user kicked, ' + socket.username + ":" + numUsers);
+            // onlineUsers.delete(socket.username);  //因为没有用户减少
+            console.log('onlineUsers: ' + onlineUsers);
+        }
+
+        else{
+            // log out or close browser
+            numUsers -= 1;
+            console.log('user left, ' + socket.username + ":" + numUsers);
+            onlineUsers.delete(socket.username);
+            console.log('onlineUsers: ' + onlineUsers);
+
+            socket.broadcast.emit('user left', {
+                username: socket.username,
+                numUsers: numUsers,
+                onlineUsers: onlineUsers.toString(),
+            });
+        }
+
+    });
+
+
+    socket.on('new message', function (msg) {
+        console.log('new message: ' + msg.content + " from " + msg.user);
+        io.emit('new message', msg);
+    });
+
+    socket.on('user joined', function (username) {
+        console.log('uuuuuuuuuuuuuuuuuuuuu--',username);
+        if(onlineUsers.has(username)){
+            console.log('kicked!!!!!!!!!!!!!!!');
+            socket.broadcast.emit('kicked', username);
+
+            // onlineUsers.add(username);  //因为没有用户减少
+            // numUsers += 1; //因为没有新增用户
+            socket.username = username;
+
+            console.log('a user connected, ' + numUsers);
+            console.log('Online users: ', onlineUsers);
+
+            // 只给自己发送，用以渲染页面
+            socket.emit('user joined', {
+                username: username,
+                numUsers: numUsers,
+                onlineUsers: onlineUsers.toString(),
+            });
+
+            console.log("=========kick=========", onlineUsers.toString());
+
+
+            // 被踢下线是断开原来client， 重新链接新的client，延迟50ms 防止user joined 提示信息出现在 user left 之前，避免歧义
+            // onlineUsers.add 以及接下来的三行代码移到函数内部，在已登录用户被T之后（假设50ms内能完成）再登陆；如果这三行代码在
+            // setTimeout外部会导致onlineUsers 少一个当前用户
+            // 这种方法的弊端是会造成延迟，而且延迟值不好设置，与网络状况有关，放弃此方法；
+            // setTimeout(function(){
+            //     onlineUsers.add(username);
+            //     numUsers += 1;
+            //     socket.username = username;
+            //
+            //     console.log('a user connected, ' + numUsers);
+            //     console.log('Online users: ', onlineUsers);
+            //
+            //     io.emit('user joined', {
+            //         username: username,
+            //         numUsers: numUsers,
+            //         onlineUsers: onlineUsers.toString(),
+            //     });
+            //
+            //     console.log("=========kick=========", onlineUsers.toString());
+            // },100);
+
+
+        }
+        else{
+            onlineUsers.add(username);
+
+            numUsers += 1;
+            console.log('a user connected, ' + numUsers);
+
+            console.log('Online users: ', onlineUsers);
+
+
+            socket.username = username;
+            // 发送给所有连接的客户端
+            io.emit('user joined', {
+                username: socket.username,
+                numUsers: numUsers,
+                onlineUsers: onlineUsers.toString(),
+            });
+            console.log("==================", onlineUsers.toString());
+
+        }
+
+    });
+
+
+});
+
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+    var port = parseInt(val, 10);
+
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
+
+    if (port >= 0) {
+        // port number
+        return port;
+    }
+
+    return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    var bind = typeof port === 'string'
+        ? 'Pipe ' + port
+        : 'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+    debug('Listening on ' + bind);
+}
